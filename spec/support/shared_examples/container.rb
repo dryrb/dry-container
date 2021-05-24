@@ -629,9 +629,16 @@ RSpec.shared_examples "a container" do
 
     it "allows to freeze a container so that nothing can be registered later" do
       container.freeze
-      error = RUBY_VERSION >= "2.5" ? FrozenError : RuntimeError
-      expect { container.register(:baz, "quux") }.to raise_error(error)
       expect(container).to be_frozen
+    end
+
+    it "wraps FrozenError to provide which key was attempted to be registered" do
+      container.freeze
+      expect { container.register(:baz, "quux") }
+        .to raise_error(
+          FrozenError,
+          /can't modify frozen \S+ \(when attempting to register 'baz'\)/
+        )
     end
 
     it "returns self back" do
